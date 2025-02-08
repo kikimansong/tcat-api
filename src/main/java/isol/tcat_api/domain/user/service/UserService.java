@@ -13,6 +13,7 @@ import isol.tcat_api.global.jwt.JwtToken;
 import isol.tcat_api.global.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -105,26 +106,30 @@ public class UserService {
         UsernamePasswordAuthenticationToken authenticationToken
                 = new UsernamePasswordAuthenticationToken(param.getUserEmail(), param.getUserPw());
 
-        // authenticate 메소드가 실행될 때 loadUserByUsername 메소드 실행
-        Authentication authentication
-                = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        try {
+            // authenticate 메소드가 실행될 때 loadUserByUsername 메소드 실행
+            Authentication authentication
+                    = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
+            JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        User user = customUserDetails.getUser();
+            User user = customUserDetails.getUser();
 
-        // 로그인한 유저의 토큰을 redis에 저장
-        refreshTokenRepository.save(
-                new RefreshToken(
-                        user.getUserIdx(),
-                        user.getUserEmail(),
-                        jwtToken.getAccessToken(),
-                        jwtToken.getRefreshToken())
-        );
+            // 로그인한 유저의 토큰을 redis에 저장
+            refreshTokenRepository.save(
+                    new RefreshToken(
+                            user.getUserIdx(),
+                            user.getUserEmail(),
+                            jwtToken.getAccessToken(),
+                            jwtToken.getRefreshToken())
+            );
 
-        return jwtToken;
+            return jwtToken;
+        } catch (BadCredentialsException e) {
+            throw new GlobalException(ErrorCode.LOGIN_FAILED);
+        }
     }
 
 }
