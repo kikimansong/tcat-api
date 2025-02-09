@@ -58,6 +58,7 @@ public class MovieCustomRepository {
                 m.movieImg,
                 m.movieDescription,
                 m.movieOpenDt,
+                m.movieOpenDt.before(LocalDate.now()).as("isOpen"),
                 m.movieTime,
                 Expressions.numberTemplate(Double.class, "ROUND({0}, 1)", jpaQueryFactory
                         .select(r.rating.avg())
@@ -105,23 +106,24 @@ public class MovieCustomRepository {
         QReservation r = new QReservation("r");
         QReview rv = new QReview("rv");
 
-        return jpaQueryFactory
+        List<MovieDTO.Item> queryList = jpaQueryFactory
                 .select(Projections.fields(MovieDTO.Item.class,
-                    m.movieIdx,
-                    m.movieName,
-                    m.movieImg,
-                    m.movieAge,
-                    m.movieDescription,
-                    m.movieOpenDt,
-                    m.movieTime,
-                    r.reservationCnt.castToNum(Long.class).sum().coalesce(0L).as("totalReservationCount"),
-                    Expressions.numberTemplate(Double.class, "ROUND({0}, 1)", jpaQueryFactory
-                            .select(rv.rating.avg())
-                            .from(rv)
-                            .where(rv.movieIdx.eq(m.movieIdx))).as("totalRating")))
+                        m.movieIdx,
+                        m.movieName,
+                        m.movieImg,
+                        m.movieAge,
+                        m.movieDescription,
+                        m.movieOpenDt,
+                        m.movieTime,
+                        r.reservationCnt.castToNum(Long.class).sum().coalesce(0L).as("totalReservationCount"),
+                        Expressions.numberTemplate(Double.class, "ROUND({0}, 1)", jpaQueryFactory
+                                .select(rv.rating.avg())
+                                .from(rv)
+                                .where(rv.movieIdx.eq(m.movieIdx))).as("totalRating")))
                 .from(m)
                 .innerJoin(mrm).on(m.movieIdx.eq(mrm.movieIdx))
                 .leftJoin(r).on(r.movieRoomMappingIdx.eq(mrm.movieRoomMappingIdx))
+                .where(m.movieOpenDt.before(LocalDate.now()))
                 .groupBy(m.movieIdx)
                 .orderBy(
                         r.reservationCnt.sum().coalesce(0).desc(),
@@ -130,6 +132,39 @@ public class MovieCustomRepository {
                 )
                 .limit(4)
                 .fetch();
+
+        /* 초기 예매 데이터가 없을 시 아래 쿼리로 리스트 조회 */
+        if (queryList.size() == 0) {
+            queryList =
+                    jpaQueryFactory
+                            .select(Projections.fields(MovieDTO.Item.class,
+                                    m.movieIdx,
+                                    m.movieName,
+                                    m.movieImg,
+                                    m.movieAge,
+                                    m.movieDescription,
+                                    m.movieOpenDt,
+                                    m.movieTime,
+                                    r.reservationCnt.castToNum(Long.class).sum().coalesce(0L).as("totalReservationCount"),
+                                    Expressions.numberTemplate(Double.class, "ROUND({0}, 1)", jpaQueryFactory
+                                            .select(rv.rating.avg())
+                                            .from(rv)
+                                            .where(rv.movieIdx.eq(m.movieIdx))).as("totalRating")))
+                            .from(m)
+                            .leftJoin(mrm).on(m.movieIdx.eq(mrm.movieIdx))
+                            .leftJoin(r).on(r.movieRoomMappingIdx.eq(mrm.movieRoomMappingIdx))
+                            .where(m.movieOpenDt.before(LocalDate.now()))
+                            .groupBy(m.movieIdx)
+                            .orderBy(
+                                    r.reservationCnt.sum().coalesce(0).desc(),
+                                    m.movieOpenDt.desc(),
+                                    m.movieIdx.desc()
+                            )
+                            .limit(4)
+                            .fetch();
+        }
+
+        return queryList;
     }
 
     /**
@@ -178,7 +213,8 @@ public class MovieCustomRepository {
                         m.movieTime))
                 .from(m)
                 .where(
-                        m.isDel.eq("N")
+                        m.isDel.eq("N"),
+                        m.movieOpenDt.before(LocalDate.now())
                 )
                 .orderBy(
                         m.movieOpenDt.desc(),
@@ -189,7 +225,8 @@ public class MovieCustomRepository {
         Long queryTotalCnt = jpaQueryFactory.select(m.movieIdx.count())
                 .from(m)
                 .where(
-                        m.isDel.eq("N")
+                        m.isDel.eq("N"),
+                        m.movieOpenDt.before(LocalDate.now())
                 )
                 .fetchOne();
 

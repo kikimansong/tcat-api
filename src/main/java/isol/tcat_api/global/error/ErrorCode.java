@@ -21,11 +21,13 @@ public enum ErrorCode {
     LOGIN_FAILED(HttpStatus.OK, "SIGNIN-001", HttpStatus.UNAUTHORIZED.value(), "이메일 또는 비밀번호가 일치하지 않습니다."),
 
     /* 예매 */
-    RESERVATION_FAILED_BY_DATETIME(HttpStatus.OK, "RESERVATION-001", HttpStatus.INTERNAL_SERVER_ERROR.value(), "예매는 상영 시간으로부터 2시간 전까지 가능합니다."),
-    RESERVATION_FAILED_ALREADY_RESERVED(HttpStatus.OK, "RESERVATION-002", HttpStatus.INTERNAL_SERVER_ERROR.value(), "선택한 좌석이 이미 예매되었습니다."),
+    RESERVATION_FAILED_BY_NOT_OPEN(HttpStatus.OK, "RESERVATION-001", HttpStatus.INTERNAL_SERVER_ERROR.value(), "상영예정인 영화는 예매할 수 없습니다."),
+    RESERVATION_FAILED_BY_DATETIME(HttpStatus.OK, "RESERVATION-002", HttpStatus.INTERNAL_SERVER_ERROR.value(), "예매는 상영 시간으로부터 2시간 전까지 가능합니다."),
+    RESERVATION_FAILED_ALREADY_RESERVED(HttpStatus.OK, "RESERVATION-003", HttpStatus.INTERNAL_SERVER_ERROR.value(), "선택한 좌석이 이미 예매되었습니다."),
 
-    REVIEW_FAILED_NO_RATING(HttpStatus.OK, "REVIEW-001", HttpStatus.INTERNAL_SERVER_ERROR.value(), "평점이 선택되지 않았습니다."),
-    REVIEW_FAILED_NO_TEXT(HttpStatus.OK, "REVIEW-002", HttpStatus.INTERNAL_SERVER_ERROR.value(), "감상평이 입력되지 않았습니다.");
+    REVIEW_FAILED_NOT_OPEN(HttpStatus.OK, "REVIEW-001", HttpStatus.INTERNAL_SERVER_ERROR.value(), "상영예정 작품에는 감상평을 등록할 수 없습니다."),
+    REVIEW_FAILED_NO_RATING(HttpStatus.OK, "REVIEW-002", HttpStatus.INTERNAL_SERVER_ERROR.value(), "평점이 선택되지 않았습니다."),
+    REVIEW_FAILED_NO_TEXT(HttpStatus.OK, "REVIEW-003", HttpStatus.INTERNAL_SERVER_ERROR.value(), "감상평이 입력되지 않았습니다.");
 
     private final HttpStatus httpStatus;
     private final String name;

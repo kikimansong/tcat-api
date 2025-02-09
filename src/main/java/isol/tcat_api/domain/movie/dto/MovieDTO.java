@@ -25,6 +25,7 @@ public class MovieDTO {
         private LocalTime movieTime;
         private long totalReservationCount;
         private double totalRating;
+        private boolean isOpen;
     }
 
     /* Movie 리스트 MovieDTO.List */
