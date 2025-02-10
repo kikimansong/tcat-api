@@ -136,8 +136,45 @@ public class ReservationService {
                         .build());
     }
 
+    /**
+     * 예매하기 Insert 동시성 제어 테스트
+     */
     public synchronized void test(ReservationDTO.Create param) throws Exception {
-        insertReservation(param);
+        MovieRoomMapping movieRoomMappingItem =  movieRoomMappingRepository.findByMovieRoomMappingIdx(param.getMovieRoomMappingIdx()).orElseThrow(()
+                -> new GlobalException(ErrorCode.ENTITY_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+        long compareTime = Duration.between(now, movieRoomMappingItem.getStartAt()).toMinutes();
+
+        /* 영화 상영시간 까지 2시간이 남지 않으면 예매 불가능 */
+        if (compareTime < 120) {
+            throw new GlobalException(ErrorCode.RESERVATION_FAILED_BY_DATETIME);
+        }
+
+        ReservationDTO.ReservedSeatsItem reservedSeatsItem = getReservedSeats(param.getMovieRoomMappingIdx());
+
+        /* JSON 문자열을 Map으로 변환 */
+        Map<String, List<Integer>> map1 = commonUtils.jsonToMap(reservedSeatsItem.getReservationSeat());
+        Map<String, List<Integer>> map2 = commonUtils.jsonToMap(param.getReservationSeat());
+
+        /* 겹치는 값 찾기 */
+        Map<String, Set<Integer>> commonValues = commonUtils.findSameKeyValue(map1, map2);
+
+        /* 선택한 좌석이 이미 예매 된 상태면 예매 실패 */
+        if (!commonValues.isEmpty()) {
+            throw new ExtendedGlobalException(ErrorCode.RESERVATION_FAILED_ALREADY_RESERVED, commonValues);
+        }
+
+        /* SecurityContext에서 유저 정보 가져오기 */
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        reservationRepository.save(Reservation.builder()
+                .movieRoomMappingIdx(param.getMovieRoomMappingIdx())
+                .reservationCnt(param.getReservationCnt())
+                .reservationSeat(param.getReservationSeat())
+                .userIdx(customUserDetails.getUser().getUserIdx())
+                .build());
     }
 
 }
