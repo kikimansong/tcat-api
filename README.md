@@ -63,4 +63,5 @@ Tcat은 주기능으로 영화 예매를 모의적으로 진행할 수 있도록
   * util
 
 
-## 데이터베이스 구성도
+## DB 테이블 구성도
+![tcat_db_arch1.png](https://github.com/kikimansong/tcat-api/blob/main/tcat_db_arch1.png?raw=true)
