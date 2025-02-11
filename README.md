@@ -20,6 +20,7 @@ Tcat은 영화 예매 사이트를 임의로 제작한 프로젝트 입니다. �
 ### 기술 스택
 + JDK 17
 + Spring boot 3.3.7
++ Gradle
 + JPA (Hibernate 6)
 + QueryDSL
 + Redis 7.2.7
