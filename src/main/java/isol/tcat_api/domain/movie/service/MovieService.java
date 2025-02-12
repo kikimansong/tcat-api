@@ -61,7 +61,7 @@ public class MovieService {
                 .movieImg(movieItem.getMovieImg())
                 .movieDescription(movieItem.getMovieDescription())
                 .movieOpenDt(movieItem.getMovieOpenDt())
-                .isOpen(movieItem.getMovieOpenDt().isBefore(LocalDate.now()))
+                .isOpen(!movieItem.getMovieOpenDt().isAfter(LocalDate.now()))
                 .movieTime(movieItem.getMovieTime())
                 .totalReservationCount(totalReservationCount)
                 .totalRating(totalRating == null ? 0 : totalRating)
