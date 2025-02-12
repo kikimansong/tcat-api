@@ -38,7 +38,7 @@ public class MovieCustomRepository {
         if (release != null && !release.equals("")) {
             switch (release) {
                 case "0" :  // 상영중
-                    movieOpenDtWhere = m.movieOpenDt.before(LocalDate.now());
+                    movieOpenDtWhere = m.movieOpenDt.loe(LocalDate.now());
                     break;
 
                 case "1" :  // 상영예정
@@ -58,7 +58,7 @@ public class MovieCustomRepository {
                 m.movieImg,
                 m.movieDescription,
                 m.movieOpenDt,
-                m.movieOpenDt.before(LocalDate.now()).as("isOpen"),
+                m.movieOpenDt.loe(LocalDate.now()).as("isOpen"),
                 m.movieTime,
                 Expressions.numberTemplate(Double.class, "ROUND({0}, 1)", jpaQueryFactory
                         .select(r.rating.avg())
@@ -123,7 +123,7 @@ public class MovieCustomRepository {
                 .from(m)
                 .innerJoin(mrm).on(m.movieIdx.eq(mrm.movieIdx))
                 .leftJoin(r).on(r.movieRoomMappingIdx.eq(mrm.movieRoomMappingIdx))
-                .where(m.movieOpenDt.before(LocalDate.now()))
+                .where(m.movieOpenDt.loe(LocalDate.now()))
                 .groupBy(m.movieIdx)
                 .orderBy(
                         r.reservationCnt.sum().coalesce(0).desc(),
@@ -153,7 +153,7 @@ public class MovieCustomRepository {
                             .from(m)
                             .leftJoin(mrm).on(m.movieIdx.eq(mrm.movieIdx))
                             .leftJoin(r).on(r.movieRoomMappingIdx.eq(mrm.movieRoomMappingIdx))
-                            .where(m.movieOpenDt.before(LocalDate.now()))
+                            .where(m.movieOpenDt.loe(LocalDate.now()))
                             .groupBy(m.movieIdx)
                             .orderBy(
                                     r.reservationCnt.sum().coalesce(0).desc(),
@@ -214,7 +214,7 @@ public class MovieCustomRepository {
                 .from(m)
                 .where(
                         m.isDel.eq("N"),
-                        m.movieOpenDt.before(LocalDate.now())
+                        m.movieOpenDt.loe(LocalDate.now())
                 )
                 .orderBy(
                         m.movieOpenDt.desc(),
@@ -226,7 +226,7 @@ public class MovieCustomRepository {
                 .from(m)
                 .where(
                         m.isDel.eq("N"),
-                        m.movieOpenDt.before(LocalDate.now())
+                        m.movieOpenDt.loe(LocalDate.now())
                 )
                 .fetchOne();
 
